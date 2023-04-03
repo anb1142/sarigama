@@ -7,13 +7,13 @@ from .manageData import appendData, readData
 def kickstart(path):
     needsLoc = "./_need.txt"
     needs = []
-
-    if len(needs)==0:
-        print("No URLs provided")
-        return 
+   
     print("Downloading Started")
     while needs != readData(needsLoc):
         needs = readData(needsLoc)
+        if len(needs)==0:
+            print("No URLs in _need.txt")
+            return 
         for url in needs:
             if downloader(url, path) == True:
                 with open(needsLoc, 'r') as fin:

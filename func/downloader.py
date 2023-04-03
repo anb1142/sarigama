@@ -2,7 +2,6 @@ import os
 import re
 import time
 
-import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
@@ -10,14 +9,13 @@ from selenium.webdriver.firefox.options import Options
 from .isfinished import isfinished
 from .manageData import appendData, readData
 
-#TODO if mp3 exists
-
 options = Options()
 options.set_preference("browser.download.folderList", 2)
 options.set_preference("browser.download.manager.showWhenStarting", False)
 options.set_preference("browser.helperApps.neverAsk.saveToDisk", "audio/mpeg")
 
-def downloader(url,path):
+
+def downloader(url, path):
     aritstMatch = re.findall(r"artist/(.+)/", url)
     if (len(re.findall(r"artist/(.+)/", url)) < 1):
         raise Exception("Incorrect Url: can't find \"artist/\"")
@@ -33,13 +31,6 @@ def downloader(url,path):
     data = readData(dataLoc) if os.path.exists(dataLoc) else []
 
     print("\n==="+artist+"===\n")
-    req = requests.get(url)
-    for songurl in re.findall(r"<a target=\"_blank\" href=\"(https:\/\/sarigama.lk\/sinhala-song.+?)\"", req.text):
-        songreq = requests.get(songurl)
-
-        downurl = re.findall(r"<a target=\"_blank\" href=\"(https:\/\/sarigama.lk\/songs.+?)\"", songreq.text)[0]
-    print(downurl)
-    return
     try:
         driver.get(url)
         tracks = driver.find_elements(By.CSS_SELECTOR, "#tracks > div")
