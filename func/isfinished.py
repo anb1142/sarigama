@@ -1,7 +1,7 @@
 import os,re
-from ..main import path
 
-def isfinished(rf=False):
+
+def isfinished(path,rf=False):
     artists = os.listdir(path)
     if len(artists) < 1:
         return True

@@ -1,13 +1,16 @@
-from downloader import downloader
-from manageData import appendData, readData
-
-from ..main import path
+from .downloader import downloader
+from .manageData import appendData, readData
 
 
-def kickstart():
+
+
+def kickstart(path):
     needsLoc = "./_need.txt"
     needs = []
 
+    if len(needs)==0:
+        print("No URLs provided")
+        return 
     print("Downloading Started")
     while needs != readData(needsLoc):
         needs = readData(needsLoc)

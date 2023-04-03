@@ -10,8 +10,8 @@ path = os.path.join(os.path.abspath(os.getcwd()), '_downloads')
 def main():
     md(path)
     mkfile(['_done.txt', '_need.txt'])
-    isfinished(True)
-    kickstart()
+    isfinished(path,True)
+    kickstart(path)
     
 
 
