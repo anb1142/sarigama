@@ -1,81 +1,72 @@
+import multiprocessing as mp
 import os
 import re
-import time
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
+import requests
 
-from .isfinished import isfinished
+from func.confirmUrl import confirmUrl
+
 from .manageData import appendData, readData
+from .manageFiles import md
 
-options = Options()
-options.set_preference("browser.download.folderList", 2)
-options.set_preference("browser.download.manager.showWhenStarting", False)
-options.set_preference("browser.helperApps.neverAsk.saveToDisk", "audio/mpeg")
+session = requests.Session()
+session.get('https://sarigama.lk')
+cookies = session.cookies.get_dict()
 
-
-def downloader(url, path):
-    aritstMatch = re.findall(r"artist/(.+)/", url)
-    if (len(re.findall(r"artist/(.+)/", url)) < 1):
-        raise Exception("Incorrect Url: can't find \"artist/\"")
-    artist = aritstMatch[0]
-
-    artistLoc = os.path.join(path,  artist)
-    dataLoc = os.path.join(os.path.join(os.path.abspath(os.getcwd()), '#data')+f'{artist}.txt')
-    options.set_preference("browser.download.dir", artistLoc)
-
-    driver = webdriver.Firefox(options=options)
-    driver.implicitly_wait(15)
-
-    data = readData(dataLoc) if os.path.exists(dataLoc) else []
-
-    print("\n==="+artist+"===\n")
+def download(title, url, filepath, cookies, dataLoc):
+    if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
+        appendData(dataLoc, title)
+        print(f"{title} was already downloaded.")
     try:
-        driver.get(url)
-        tracks = driver.find_elements(By.CSS_SELECTOR, "#tracks > div")
+        fileres = requests.get(url, cookies=cookies, stream=True)
     except:
-        return "Failed to Launch"
+        return "Request"
 
-    for trackelem in tracks:
-        try:
-            driver.switch_to.window(driver.window_handles[0])  # IMPORTANT must be first
-            trackname = trackelem.text.strip()
-            print(trackname, end=' ', flush=True)
+    with open(filepath, 'wb') as file:
+        file.write(fileres.content)
 
-            if trackname in data:
-                print('exists', end='\n', flush=True)
-                continue
-            track = trackelem.find_element(By.XPATH, './/a')
+    print(f"{title} has downloaded.")
+    appendData(dataLoc, title)
 
-            driver.execute_script("window.open('" + track.get_attribute('href') + "');")
-            driver.switch_to.window(driver.window_handles[1])
 
-            time.sleep(10)
-            try:
-                download = driver.find_element(By.CSS_SELECTOR, ".btn-primary")
-            except:
-                appendData(dataLoc, trackname)
-                driver.execute_script("window.close();")
-                print('not found', end='\n', flush=True)
-                continue
+def downloader(url, downloadloc, dataloc):
+    url = confirmUrl(url)
+    if "Unsupported" in url:
+        return url
 
-            download.click()
+    artisttext = requests.get(url).text
+    artist = re.findall(r"class=\"page-title\">\n+.+<h1.+?>(.+)</h1>", artisttext)[0]
 
-            driver.execute_script("window.close();")
-            time.sleep(15)
-            driver.switch_to.window(driver.window_handles[1])
-            driver.execute_script("window.close();")
+    songsurls = re.findall(r"<a target=\"_blank\" href=\"(https:\/\/sarigama.lk\/sinhala-song.+?)\"", artisttext)
+    print(f"======{artist} ({len(songsurls)} Songs)======")
 
-            fin = isfinished()
-            while fin == False:
-                fin = isfinished()
-                time.sleep(1)
+    artistdataLoc = os.path.join(dataloc, f'{artist}.txt')
+    artistData = readData(artistdataLoc)
+    
+    reMsg = 0
+    downCount=0
+    for songurl in songsurls:
+        songtext = requests.get(songurl).text
+        title = re.findall(r"class=\"page-title\">\n+.+<h1.+?>(.+)</h1>", songtext)[0]
+        if title in artistData:
+            reMsg = 1
+            print(f"{title} was already downloaded.")
+            continue
 
-            appendData(dataLoc, trackname)
-            print('done', end='\n', flush=True)
-        except:
-            print('failed', end='\n', flush=True)
-
-    driver.quit()
+        downurl = re.findall(r"<a target=\"_blank\" href=\"(https:\/\/sarigama.lk\/songs.+?)\"", songtext)[0]
+        downres = requests.get(downurl, cookies=cookies)
+        mp3url = re.findall(r"<a.+href=\"(.+)\".+Click here to download again", downres.text)[0]
+        md(os.path.join(downloadloc, artist))
+        mp3loc = os.path.join(downloadloc, artist, f'{title}.mp3')
+        p = mp.Process(target=download, args=(title, mp3url, mp3loc, cookies, artistdataLoc))
+        p.start()
+        downCount+=1
+        
+    if downCount>0:
+        p.join()
+    if reMsg != 0:
+        print("\nRemove song title from `_data` to redownload.")
+    print("\n")
+    
+    
     return True

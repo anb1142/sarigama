@@ -1,5 +1,6 @@
 import os
 
+
 def md(paths):
     paths = paths if isinstance(paths, list) else [paths]
     for path in paths:
