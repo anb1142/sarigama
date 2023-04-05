@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import os
 import re
+import time
 
 import requests
 
@@ -8,10 +9,12 @@ from func.confirmUrl import confirmUrl
 
 from .manageData import appendData, readData
 from .manageFiles import md
+from .isfinished import isfinished
 
 session = requests.Session()
 session.get('https://sarigama.lk')
 cookies = session.cookies.get_dict()
+
 
 def download(title, url, filepath, cookies, dataLoc):
     if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
@@ -29,7 +32,15 @@ def download(title, url, filepath, cookies, dataLoc):
     appendData(dataLoc, title)
 
 
-def downloader(url, downloadloc, dataloc):
+def downloadingCount(artistLoc):
+    i = 0
+    for track in os.listdir(artistLoc):
+        if os.path.getsize(os.path.join(artistLoc, track)) == 0:
+            i += 1
+    return i
+
+
+def downloader(url, downloadsloc, dataloc):
     url = confirmUrl(url)
     if "Unsupported" in url:
         return url
@@ -42,9 +53,9 @@ def downloader(url, downloadloc, dataloc):
 
     artistdataLoc = os.path.join(dataloc, f'{artist}.txt')
     artistData = readData(artistdataLoc)
-    
+
     reMsg = 0
-    downCount=0
+    downCount = 0
     for songurl in songsurls:
         songtext = requests.get(songurl).text
         title = re.findall(r"class=\"page-title\">\n+.+<h1.+?>(.+)</h1>", songtext)[0]
@@ -56,17 +67,23 @@ def downloader(url, downloadloc, dataloc):
         downurl = re.findall(r"<a target=\"_blank\" href=\"(https:\/\/sarigama.lk\/songs.+?)\"", songtext)[0]
         downres = requests.get(downurl, cookies=cookies)
         mp3url = re.findall(r"<a.+href=\"(.+)\".+Click here to download again", downres.text)[0]
-        md(os.path.join(downloadloc, artist))
-        mp3loc = os.path.join(downloadloc, artist, f'{title}.mp3')
+
+        artistLoc = os.path.join(downloadsloc, artist)
+        md(os.path.join(artistLoc))
+        mp3loc = os.path.join(artistLoc, f'{title}.mp3')
+
+        currentCount = downloadingCount(artistLoc)
+        while currentCount > 7:
+            currentCount = downloadingCount(artistLoc)
+            time.sleep(1)
         p = mp.Process(target=download, args=(title, mp3url, mp3loc, cookies, artistdataLoc))
         p.start()
-        downCount+=1
-        
-    if downCount>0:
+        downCount += 1
+
+    if downCount > 0:
         p.join()
     if reMsg != 0:
         print("\nRemove song title from `_data` to redownload.")
     print("\n")
-    
-    
+
     return True

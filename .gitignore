@@ -4,3 +4,6 @@ _downloads
 _data
 __pycache__
 geckodriver.log
+dist
+build
+main.spec

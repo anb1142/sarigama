@@ -1,7 +1,4 @@
-import time
-import multiprocessing as mp
 from .downloader import downloader
-from .isfinished import isfinished
 from .manageData import appendData, readData
 
 
