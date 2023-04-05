@@ -5,11 +5,9 @@ import time
 
 import requests
 
-from func.confirmUrl import confirmUrl
 
 from .manageData import appendData, readData
 from .manageFiles import md
-from .isfinished import isfinished
 
 session = requests.Session()
 session.get('https://sarigama.lk')
@@ -41,10 +39,6 @@ def downloadingCount(artistLoc):
 
 
 def downloader(url, downloadsloc, dataloc):
-    url = confirmUrl(url)
-    if "Unsupported" in url:
-        return url
-
     artisttext = requests.get(url).text
     artist = re.findall(r"class=\"page-title\">\n+.+<h1.+?>(.+)</h1>", artisttext)[0]
 
@@ -86,4 +80,6 @@ def downloader(url, downloadsloc, dataloc):
         print("\nRemove song title from `_data` to redownload.")
     print("\n")
 
-    return True
+    if downCount==len(songsurls):
+        return True
+    return "Failed to go through all songs"
