@@ -1,8 +1,6 @@
 import os
 import sys
 
-from func.confirmUrl import confirmUrl
-from func.downloader import downloader
 from func.isfinished import isfinished
 from func.kickstart import kickstart
 from func.manageData import appendData, readData

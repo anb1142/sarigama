@@ -5,8 +5,8 @@ from .manageData import appendData, readData
 def kickstart(downloadsloc, dataloc):
     needsLoc = "./_need.txt"
     needs = []
-    while needs != readData(needsLoc):
-        needs = readData(needsLoc)
+    while needs != (newNeeds:=readData(needsLoc)):
+        needs = list(set(newNeeds))
         for url in needs:
             if url.strip() == '':
                 continue
