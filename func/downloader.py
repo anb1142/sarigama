@@ -48,9 +48,11 @@ def downloader(url, downloadsloc, dataloc):
     artistdataLoc = os.path.join(dataloc, f'{artist}.txt')
     artistData = readData(artistdataLoc)
 
+    n=0
     reMsg = 0
     downCount = 0
     for songurl in songsurls:
+        n+=1
         songtext = requests.get(songurl).text
         title = re.findall(r"class=\"page-title\">\n+.+<h1.+?>(.+)</h1>", songtext)[0]
         if title in artistData:
@@ -73,13 +75,13 @@ def downloader(url, downloadsloc, dataloc):
         p = mp.Process(target=download, args=(title, mp3url, mp3loc, cookies, artistdataLoc))
         p.start()
         downCount += 1
-
+        
     if downCount > 0:
         p.join()
     if reMsg != 0:
         print("\nRemove song title from `_data` to redownload.")
     print("\n")
 
-    if downCount==len(songsurls):
+    if n == len(songsurls):
         return True
     return "Failed to go through all songs"
