@@ -10,4 +10,4 @@ def readData(path):
 
 def appendData(path, data):
     with open(path, 'a+') as out:
-        out.write(data+"\n")
+        out.write(data.strip()+"\n")
