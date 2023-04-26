@@ -48,16 +48,16 @@ def downloader(url, downloadsloc, dataloc):
     artistdataLoc = os.path.join(dataloc, f'{artist}.txt')
     artistData = readData(artistdataLoc)
 
-    n=0
+    n = 0
     reMsg = 0
     downCount = 0
     for songurl in songsurls:
-        n+=1
+        n += 1
         songtext = requests.get(songurl).text
-        title = re.findall(r"class=\"page-title\">\n+.+<h1.+?>(.+)</h1>", songtext)[0]
-        if title in artistData:
+        songtitle = re.findall(r"class=\"page-title\">\n*.+<h1.+?>\n*?(.+)<\/h1>", songtext)[0]
+        if songtitle in artistData:
             reMsg = 1
-            print(f"{title} was already downloaded.")
+            print(f"{songtitle} was already downloaded.")
             continue
 
         downurl = re.findall(r"<a target=\"_blank\" href=\"(https:\/\/sarigama.lk\/songs.+?)\"", songtext)[0]
@@ -66,16 +66,16 @@ def downloader(url, downloadsloc, dataloc):
 
         artistLoc = os.path.join(downloadsloc, artist)
         md(os.path.join(artistLoc))
-        mp3loc = os.path.join(artistLoc, f'{title}.mp3')
+        mp3loc = os.path.join(artistLoc, f'{songtitle}.mp3')
 
         currentCount = downloadingCount(artistLoc)
         while currentCount > 7:
             currentCount = downloadingCount(artistLoc)
             time.sleep(1)
-        p = mp.Process(target=download, args=(title, mp3url, mp3loc, cookies, artistdataLoc))
+        p = mp.Process(target=download, args=(songtitle, mp3url, mp3loc, cookies, artistdataLoc))
         p.start()
         downCount += 1
-        
+
     if downCount > 0:
         p.join()
     if reMsg != 0:
