@@ -1,9 +1,18 @@
+import re
 import time
 from collections import OrderedDict
+
 from .downloader import downloader
 from .manageData import appendData, readData
-from .confirmUrl import confirmUrl
 
+
+def confirmUrl(url):
+    url=url.replace('\n', '')
+    if len(re.findall(r"sarigama\.lk\/artist\/.+\/.+", url)) < 1:
+        return f"Unsupported link:\n{url}\n"
+
+    url = "https://"+url if len(re.findall(r"(https?:\/\/)", url)) < 1 else url.replace('http://', 'https://')
+    return url
 
 def kickstart(downloadsloc, dataloc):
     needsLoc = "./_need.txt"
