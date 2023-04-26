@@ -9,12 +9,11 @@ import requests
 from .manageData import appendData, readData
 from .manageFiles import md
 
-session = requests.Session()
-session.get('https://sarigama.lk')
-cookies = session.cookies.get_dict()
+
+ALLOWED_CONCURRENT_DOWNLOADS = 2
 
 
-def download(title, url, filepath, cookies, dataLoc):
+def download(title, url, filepath, dataLoc, cookies):
     if os.path.exists(filepath) and os.path.getsize(filepath) > 0:
         appendData(dataLoc, title)
         print(f"{title} was already downloaded.")
@@ -39,49 +38,43 @@ def downloadingCount(artistLoc):
 
 
 def downloader(url, downloadsloc, dataloc):
-    artisttext = requests.get(url).text
-    artist = re.findall(r"class=\"page-title\">\n+.+<h1.+?>(.+)</h1>", artisttext)[0]
+    session = requests.Session()
+    session.get('https://sarigama.lk')
+    cookies = session.cookies.get_dict()
 
-    songsurls = re.findall(r"<a target=\"_blank\" href=\"(https:\/\/sarigama.lk\/sinhala-song.+?)\"", artisttext)
-    print(f"======{artist} ({len(songsurls)} Songs)======")
+    artistPageHtml = requests.get(url).text
 
-    artistdataLoc = os.path.join(dataloc, f'{artist}.txt')
-    artistData = readData(artistdataLoc)
+    artistname = re.findall(r"class=\"page-title\">\n+.+<h1.+?>(.+)</h1>", artistPageHtml)[0]
+    songurls = re.findall(r"<a target=\"_blank\" href=\"(https:\/\/sarigama.lk\/sinhala-song.+?)\">\n?(.+?)<\/a>", artistPageHtml)
+    linkCount = len(songurls)
 
-    n = 0
-    reMsg = 0
-    downCount = 0
-    for songurl in songsurls:
-        n += 1
-        songtext = requests.get(songurl).text
-        songtitle = re.findall(r"class=\"page-title\">\n*.+<h1.+?>\n*?(.+)<\/h1>", songtext)[0]
-        if songtitle in artistData:
-            reMsg = 1
-            print(f"{songtitle} was already downloaded.")
-            continue
+    artistDlSongsLoc = os.path.join(dataloc, f'{artistname}.txt')
+    songurls = [song for song in songurls if song[1].strip() not in readData(artistDlSongsLoc)]
 
-        downurl = re.findall(r"<a target=\"_blank\" href=\"(https:\/\/sarigama.lk\/songs.+?)\"", songtext)[0]
-        downres = requests.get(downurl, cookies=cookies)
-        mp3url = re.findall(r"<a.+href=\"(.+)\".+Click here to download again", downres.text)[0]
+    if (songCount := len(songurls)) == 0:
+        return True
 
-        artistLoc = os.path.join(downloadsloc, artist)
-        md(os.path.join(artistLoc))
+    print(f"======{artistname} ({songCount} Songs to Download | {linkCount-songCount} / {linkCount})======")
+
+    artistLoc = os.path.join(downloadsloc, artistname)
+    md(os.path.join(artistLoc))
+
+    for n, (url, songtitle) in enumerate(songurls):
+        while downloadingCount(artistLoc)+1 >= ALLOWED_CONCURRENT_DOWNLOADS:
+            time.sleep(1)
+
+        downloadPageUrl = re.findall(r"<a target=\"_blank\" href=\"(https:\/\/sarigama.lk\/songs.+?)\"", requests.get(url).text)[0]
+        mp3url = re.findall(r"<a.+href=\"(.+)\".+Click here to download again", requests.get(downloadPageUrl, cookies=cookies).text)[0]
         mp3loc = os.path.join(artistLoc, f'{songtitle}.mp3')
 
-        currentCount = downloadingCount(artistLoc)
-        while currentCount > 7:
-            currentCount = downloadingCount(artistLoc)
-            time.sleep(1)
-        p = mp.Process(target=download, args=(songtitle, mp3url, mp3loc, cookies, artistdataLoc))
+        p = mp.Process(target=download, args=(songtitle, mp3url, mp3loc, artistDlSongsLoc, cookies))
         p.start()
-        downCount += 1
 
-    if downCount > 0:
+    if 'p' in vars():
         p.join()
-    if reMsg != 0:
-        print("\nRemove song title from `_data` to redownload.")
     print("\n")
 
-    if n == len(songsurls):
+    if n+1 == songCount:
         return True
-    return "Failed to go through all songs"
+    else:
+        return "Failed to go through all songs"
