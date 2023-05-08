@@ -1,24 +1,20 @@
 import os
 import sys
 
+from lib._vars import DATA_LOC, DONE_LOC, DOWNLOAD_LOC
 from lib.isfinished import isfinished
 from lib.kickstart import kickstart
-from lib.manageData import appendData, readData
+from lib.manageData import append_data, read_data
 from lib.manageFiles import md, mkfile
-
-PATH = os.path.abspath(os.getcwd())
-DOWNLOAD_LOC = os.path.join(PATH, '_downloads')
-DATA_LOC = os.path.join(PATH, '_data')
-DONE_LOC = './_done.txt'
 
 if __name__ == "__main__":
     md([DOWNLOAD_LOC, DATA_LOC])
     mkfile(['_done.txt', '_need.txt'])
-    isfinished(DOWNLOAD_LOC, rf=True)
+    isfinished(rf=True)
     cli = sys.argv[1:]
     if 'update' in sys.argv:
-        for url in readData(DONE_LOC):
-            appendData('./_need.txt', url)
+        for url in read_data(DONE_LOC):
+            append_data('./_need.txt', url)
         os.unlink(DONE_LOC)
         mkfile(DONE_LOC)
-    kickstart(DOWNLOAD_LOC, DATA_LOC)
+    kickstart()

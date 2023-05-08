@@ -1,15 +1,17 @@
 import os
 
+from ._vars import DOWNLOAD_LOC
 
-def isfinished(downloadsloc, rf=False):
-    artists = os.listdir(downloadsloc)
+
+def isfinished(rf=False):
+    artists = os.listdir(DOWNLOAD_LOC)
     if len(artists) < 1:
         return True
     for artist in artists:
-        artistLoc = os.path.join(downloadsloc, artist)
-        if not os.path.isdir(artistLoc):
+        artist_loc = os.path.join(DOWNLOAD_LOC, artist)
+        if not os.path.isdir(artist_loc):
             continue
-        for track in os.listdir(artistLoc):
-            trackLoc = os.path.join(artistLoc, track)
-            if rf is True and not os.path.getsize(trackLoc):
-                os.unlink(trackLoc)
+        for track in os.listdir(artist_loc):
+            track_loc = os.path.join(artist_loc, track)
+            if rf is True and not os.path.getsize(track_loc):
+                os.unlink(track_loc)
