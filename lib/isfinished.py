@@ -14,5 +14,5 @@ def isfinished(rf=False):
             continue
         for track in os.listdir(artist_loc):
             track_loc = Path(artist_loc, track)
-            if rf is True and not os.path.getsize(track_loc):
+            if rf is True and os.path.getsize(track_loc) < 100*1024:
                 os.unlink(track_loc)
