@@ -1,6 +1,8 @@
 import os
+from pathlib import Path
 
 PATH = os.path.abspath(os.getcwd())
-DOWNLOAD_LOC = os.path.join(PATH, '_downloads')
-DATA_LOC = os.path.join(PATH, '_data')
-DONE_LOC = os.path.join(PATH, '_done.txt')
+DOWNLOAD_LOC = Path(PATH, '_downloads')
+DATA_LOC = Path(PATH, '_data')
+DONE_LOC = Path(PATH, '_done.txt')
+NEED_LOC = Path(PATH, '_need.txt')

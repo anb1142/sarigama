@@ -2,6 +2,7 @@ import multiprocessing as mp
 import os
 import re
 import time
+from pathlib import Path
 
 import requests
 
@@ -30,7 +31,7 @@ def download(title, url, filepath, artist_data_loc, cookies):
 
 
 def concurrentDownloadCounter(artistLoc):
-    return len([track for track in os.listdir(artistLoc) if os.path.getsize(os.path.join(artistLoc, track)) == 0])
+    return len([track for track in os.listdir(artistLoc) if os.path.getsize(Path(artistLoc, track)) == 0])
 
 
 def downloader(url):
@@ -44,7 +45,7 @@ def downloader(url):
     songurls = re.findall(r"<a target=\"_blank\" href=\"(https:\/\/sarigama.lk\/sinhala-song.+?)\">\n?(.+?)<\/a>", artist_page_html)
     link_count = len(songurls)
 
-    artist_data_loc = os.path.join(DATA_LOC, f'{artistname}.txt')
+    artist_data_loc = Path(DATA_LOC, f'{artistname}.txt')
     songurls = [song for song in songurls if song[1].strip() not in read_data(artist_data_loc)]
 
     if not (song_count := len(songurls)):
@@ -53,13 +54,13 @@ def downloader(url):
 
     print(f"======{artistname} ({song_count} Songs to Download | {link_count-song_count} / {link_count})======")
 
-    artist_loc = os.path.join(DOWNLOAD_LOC, artistname)
-    md(os.path.join(artist_loc))
+    artist_loc = Path(DOWNLOAD_LOC, artistname)
+    md(Path(artist_loc))
 
     for n, (url, songtitle) in enumerate(songurls):
         download_page_url = re.findall(r"<a target=\"_blank\" href=\"(https:\/\/sarigama.lk\/songs.+?)\"", requests.get(url).text)[0]
         mp3url = re.findall(r"<a.+href=\"(.+)\".+Click here to download again", requests.get(download_page_url, cookies=cookies).text)[0]
-        mp3loc = os.path.join(artist_loc, f'{songtitle.strip()}.mp3')
+        mp3loc = Path(artist_loc, f'{songtitle.strip()}.mp3')
 
         while concurrentDownloadCounter(artist_loc)+1 >= ALLOWED_CONCURRENT_DOWNLOADS:
             time.sleep(1)
