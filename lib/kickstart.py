@@ -34,6 +34,7 @@ def kickstart():
         if "Unsupported" in (url := confirm_url(url)):
             print(url)
         elif (res := downloader(url)) is True:
+            break
             remove_first_line(NEED_LOC)
             append_data(DONE_LOC, url)
         else:
