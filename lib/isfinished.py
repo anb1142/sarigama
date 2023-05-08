@@ -9,8 +9,7 @@ def isfinished(downloadsloc, rf=False):
         artistLoc = os.path.join(downloadsloc, artist)
         if not os.path.isdir(artistLoc):
             continue
-        tracks = os.listdir(artistLoc)
-        for track in tracks:
+        for track in os.listdir(artistLoc):
             trackLoc = os.path.join(artistLoc, track)
-            if rf == True and os.path.getsize(trackLoc) == 0:
+            if rf is True and not os.path.getsize(trackLoc):
                 os.unlink(trackLoc)
