@@ -11,7 +11,15 @@ from .manageData import append_data, read_data
 from .manageFiles import md
 
 
+<<<<<<< HEAD
 def download(song_title, url, cookies, filepath, artist_data_loc):
+=======
+def append_song_data(title):
+    append_data(artist_data_loc, title)
+
+
+def download(title, url, filepath):
+>>>>>>> bfc44e7b6eb6dc7ad97c10045415422bc91dd4c2
     try:
         fileres = requests.get(url, cookies=cookies, stream=True)
     except Exception:
@@ -20,18 +28,31 @@ def download(song_title, url, cookies, filepath, artist_data_loc):
     with open(filepath, 'wb') as file:
         file.write(fileres.content)
 
+<<<<<<< HEAD
     print(f"{song_title} has downloaded.")
     append_data(artist_data_loc, song_title)
 
 
 def concurrentDownloadCounter(artist_loc):
     return len([track for track in os.listdir(artist_loc) if os.path.getsize(Path(artist_loc, track)) == 0])
+=======
+    print(f"{title} has downloaded.")
+    append_song_data(title)
+
+
+def concurrentDownloadCounter(artistLoc):
+    return len([track for track in os.listdir(artistLoc) if os.path.getsize(Path(artistLoc, track)) < 0])
+>>>>>>> bfc44e7b6eb6dc7ad97c10045415422bc91dd4c2
 
 
 ARTIST_LINK_PREFIX = 'https://sarigama.lk/sinhala-song/'
 
 
+<<<<<<< HEAD
 def filter_urls(urls, artist_loc, artist_data_loc):
+=======
+def filter_urls(urls, artist_loc):
+>>>>>>> bfc44e7b6eb6dc7ad97c10045415422bc91dd4c2
     links = []
     for a in urls:
         IS_NOT_IN_DATA = (song_title := a.text.strip()) not in read_data(artist_data_loc)
@@ -40,14 +61,28 @@ def filter_urls(urls, artist_loc, artist_data_loc):
 
         if IS_NOT_IN_DATA:
             if SONG_FILE_EXISTS:
+<<<<<<< HEAD
                 append_data(artist_data_loc, song_title)
+=======
+                append_song_data(song_title)
+>>>>>>> bfc44e7b6eb6dc7ad97c10045415422bc91dd4c2
             else:
                 links.append((a['href'], song_title, filepath))
 
     return links, len(urls)
 
 
+<<<<<<< HEAD
 def downloader(artist_url):
+=======
+artist_data_loc = ''
+cookies = {}
+
+
+def downloader(artist_url):
+    global artist_data_loc, cookies
+
+>>>>>>> bfc44e7b6eb6dc7ad97c10045415422bc91dd4c2
     session = requests.Session()
     session.get('https://sarigama.lk')
     cookies = session.cookies.get_dict()
@@ -57,7 +92,11 @@ def downloader(artist_url):
     artist_data_loc = Path(DATA_LOC, f'{artist_name}.txt')
 
     md((artist_loc := Path(DOWNLOAD_LOC, artist_name)))
+<<<<<<< HEAD
     song_urls, total_songs = filter_urls(artist_page.find(id="tracks").find_all("a", {"target": "_blank"}), artist_loc, artist_data_loc)
+=======
+    song_urls, total_songs = filter_urls(artist_page.find(id="tracks").find_all("a", {"target": "_blank"}), artist_loc)
+>>>>>>> bfc44e7b6eb6dc7ad97c10045415422bc91dd4c2
 
     total_songs = len(song_urls)
 
@@ -72,14 +111,26 @@ def downloader(artist_url):
         try:
             download_page_url = artist_page.find("a", {"class": "btn btn-primary btn-lg btn-fix-size", "target": "_blank"})['href']
         except TypeError:
+<<<<<<< HEAD
             append_data(artist_data_loc, song_title)
+=======
+            append_song_data(song_title)
+>>>>>>> bfc44e7b6eb6dc7ad97c10045415422bc91dd4c2
             continue
 
         download_page = BeautifulSoup(requests.get(download_page_url, cookies=cookies).content, PARSER)
         mp3url = download_page.find(id="block_204").parent.find("a")['href']
+<<<<<<< HEAD
         while concurrentDownloadCounter(artist_loc)+1 > ALLOWED_CONCURRENT_DOWNLOADS:
             time.sleep(1)
         p = mp.Process(target=download, args=(song_title, mp3url, cookies, filepath, artist_data_loc))
+=======
+
+        while concurrentDownloadCounter(artist_loc)+1 > ALLOWED_CONCURRENT_DOWNLOADS:
+            time.sleep(1)
+
+        p = mp.Process(target=download, args=(song_title, mp3url, filepath))
+>>>>>>> bfc44e7b6eb6dc7ad97c10045415422bc91dd4c2
         p.start()
 
     if 'p' in vars():
