@@ -33,7 +33,7 @@ def kickstart():
     for url in (needs := read_needs()):
         if "Unsupported" in (url := confirm_url(url)):
             print(url)
-        elif (res := downloader(url, DOWNLOAD_LOC, DATA_LOC)) is True:
+        elif (res := downloader(url)) is True:
             remove_first_line(NEED_LOC)
             append_data(DONE_LOC, url)
         else:
