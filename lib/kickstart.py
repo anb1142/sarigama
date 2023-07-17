@@ -2,7 +2,7 @@ import re
 from collections import OrderedDict
 
 from ._vars import DATA_LOC, DONE_LOC, DOWNLOAD_LOC
-from .downloader import downloader
+from .downloader.downloader import downloader
 from .manageData import append_data, read_data
 
 NEED_LOC = "./_need.txt"
